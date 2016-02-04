@@ -1,0 +1,60 @@
+def SGD(h, fJ, fdJ, theta, X, y, 
+        alpha=0.0001, maxEpochs=1.0, batchSize=100, adaGrad=True):
+    m, n = X.shape
+    start, end = 0, batchSize
+    eps = 10 ** -7
+    hist = np.matrix(np.zeros(n)).reshape(n,1)
+    
+    maxSteps = (m * float(maxEpochs)) / batchSize
+    for i in range(int(maxSteps)):
+        XBatch, yBatch =  X[start:end,:], y[start:end].reshape(end-start,1)
+ 
+        fdj = fdJ(h, theta, XBatch, yBatch)
+        
+        if (adaGrad):
+            hist += np.multiply(fdj, fdj)
+            adj_grad = np.multiply(alpha / (np.sqrt(hist)+eps), fdj)
+
+        else:
+            adj_grad = alpha * fdj
+            
+        theta = theta - adj_grad
+        
+        if start + batchSize < m:
+            start += batchSize
+        else:
+            start = 0
+        end = min(start + batchSize, m)
+        
+    return theta
+
+
+def SGD(h, fJ, fdJ, theta, X, y, 
+        alpha=0.0001, maxEpochs=1.0, batchSize=100, adaGrad=True):
+    m, n = X.shape
+    start, end = 0, batchSize
+    hist=np.matrix(np.array([t*t for t in theta])).transpose()
+    
+    maxSteps = (m * float(maxEpochs)) / batchSize
+    for i in range(int(maxSteps)):
+        XBatch, yBatch =  X[start:end,:], y[start:end].reshape(end-start,1)
+
+        if (adaGrad):
+            alpha = alpha * 1/np.sqrt(np.matrix(np.array([k + 10**(-7) for k in hist])).transpose())
+ 
+            fdj = fdJ(h, theta, XBatch, yBatch)
+
+            theta = np.matrix(np.array([theta[l] - (alpha[l] * fdj[l]) for l in range(fdj.shape[0])])).transpose()
+
+        else:
+
+            theta = theta - alpha * fdJ(h, theta, XBatch, yBatch)
+        
+        if start + batchSize < m:
+            start += batchSize
+        else:
+            start = 0
+        end = min(start + batchSize, m)
+        hist=np.matrix(np.array([hist[s] + (theta[s] * theta[s]) for s in range (theta.shape[0])])).transpose()
+        
+    return theta
